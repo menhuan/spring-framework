@@ -310,7 +310,7 @@ public class DubboProtocol extends AbstractProtocol {
 
             }
         }
-
+        // 启动服务的核心代码
         openServer(url);
         optimizeSerialization(url);
 
@@ -324,6 +324,7 @@ public class DubboProtocol extends AbstractProtocol {
         //client can export a service which's only for server to invoke
         boolean isServer = url.getParameter(IS_SERVER_KEY, true);
         if (isServer) {
+            // 有的话就返回，没有的话重新创建
             ProtocolServer server = serverMap.get(key);
             if (server == null) {
                 synchronized (this) {
@@ -346,7 +347,12 @@ public class DubboProtocol extends AbstractProtocol {
             throw new IllegalStateException( getClass().getSimpleName() + " is destroyed");
         }
     }
-
+    
+    /**
+     * 创建一个server服务
+     * @param url
+     * @return
+     */
     private ProtocolServer createServer(URL url) {
         url = URLBuilder.from(url)
                 // send readonly event when server closes, it's enabled by default
@@ -363,6 +369,7 @@ public class DubboProtocol extends AbstractProtocol {
 
         ExchangeServer server;
         try {
+            // 核心代码逻辑，绑定服务
             server = Exchangers.bind(url, requestHandler);
         } catch (RemotingException e) {
             throw new RpcException("Fail to start server(url: " + url + ") " + e.getMessage(), e);

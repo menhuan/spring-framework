@@ -60,13 +60,20 @@ public class Application {
     }
 
     private static void runWithRefer() {
+        // referenceConfig 是什么。
+        // 有provider实例的引用，referenceConfig是服务实例的容器。
         ReferenceConfig<DemoService> reference = new ReferenceConfig<>();
+        // 定义的是一个名称
         reference.setApplication(new ApplicationConfig("dubbo-demo-api-consumer"));
+        // 设置注册中心
         reference.setRegistry(new RegistryConfig("zookeeper://127.0.0.1:2181"));
+        // 元数据中心的地址
         reference.setMetadataReportConfig(new MetadataReportConfig("zookeeper://127.0.0.1:2181"));
+        // 设置一些要调用的服务的接口
         reference.setInterface(DemoService.class);
+        // 实现接口的动态代理，调用接口
         DemoService service = reference.get();
-        String message = service.sayHello("dubbo");
+        String message = service.sayHello("dubbo ruiqi");
         System.out.println(message);
     }
 }

@@ -52,12 +52,19 @@ public class Application {
     }
 
     private static void startWithExport() throws InterruptedException {
+        // 一个容器，用来存放服务内容的config.
         ServiceConfig<DemoServiceImpl> service = new ServiceConfig<>();
+        // 要放入的服务接口
         service.setInterface(DemoService.class);
+        // 上面对应服务接口的实现
         service.setRef(new DemoServiceImpl());
+        // 定义一个application 的名称
         service.setApplication(new ApplicationConfig("dubbo-demo-api-provider"));
+        // 向服务中心进行注册
         service.setRegistry(new RegistryConfig("zookeeper://127.0.0.1:2181"));
+        // 元数据的信息上报。
         service.setMetadataReportConfig(new MetadataReportConfig("zookeeper://127.0.0.1:2181"));
+        // 向外暴露的服务。
         service.export();
 
         System.out.println("dubbo service started");

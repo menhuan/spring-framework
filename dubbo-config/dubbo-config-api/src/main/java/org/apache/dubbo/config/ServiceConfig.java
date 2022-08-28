@@ -209,22 +209,27 @@ public class ServiceConfig<T> extends ServiceConfigBase<T> {
             return;
         }
         // prepare for export
+        // moduleDeployer 用来准备一些初始化工作
         ModuleDeployer moduleDeployer = getScopeModel().getDeployer();
         moduleDeployer.prepare();
 
         if (!this.isRefreshed()) {
+            // 服务的刷新工作
             this.refresh();
         }
         if (this.shouldExport()) {
+            // 执行服务的初始化工作
             this.init();
-
+            // 延迟
             if (shouldDelay()) {
                 doDelayExport();
             } else {
+                // 核心流程
                 doExport();
             }
 
             // notify export this service
+            // 通知外部我们，开始发布了。
             moduleDeployer.notifyExportService(this);
         }
     }
@@ -377,7 +382,9 @@ public class ServiceConfig<T> extends ServiceConfigBase<T> {
 
     @SuppressWarnings({"unchecked", "rawtypes"})
     private void doExportUrls() {
+        // 加载注册中心
         ModuleServiceRepository repository = getScopeModel().getServiceRepository();
+        // 暴露服务
         ServiceDescriptor serviceDescriptor = repository.registerService(getInterfaceClass());
         providerModel = new ProviderModel(getUniqueServiceName(),
             ref,
@@ -387,7 +394,7 @@ public class ServiceConfig<T> extends ServiceConfigBase<T> {
             serviceMetadata);
 
         repository.registerProvider(providerModel);
-
+        // 加载所有的注册中心地址
         List<URL> registryURLs = ConfigValidationUtils.loadRegistries(this, true);
 
         for (ProtocolConfig protocolConfig : protocols) {
@@ -395,7 +402,9 @@ public class ServiceConfig<T> extends ServiceConfigBase<T> {
                     .map(p -> p + "/" + path)
                     .orElse(path), group, version);
             // In case user specified path, register service one more time to map it to path.
+            // 服务的注册
             repository.registerService(pathKey, interfaceClass);
+            // 执行服务的启动和暴露
             doExportUrlsFor1Protocol(protocolConfig, registryURLs);
         }
     }
@@ -407,7 +416,7 @@ public class ServiceConfig<T> extends ServiceConfigBase<T> {
         serviceMetadata.getAttachments().putAll(map);
 
         URL url = buildUrl(protocolConfig, registryURLs, map);
-
+        // 暴露服务包含远程和本地的
         exportUrl(url, registryURLs);
     }
 
@@ -640,10 +649,12 @@ public class ServiceConfig<T> extends ServiceConfigBase<T> {
 
     @SuppressWarnings({"unchecked", "rawtypes"})
     private void doExportUrl(URL url, boolean withMetaData) {
+        // spi的方式进入到这里
         Invoker<?> invoker = proxyFactory.getInvoker(ref, (Class) interfaceClass, url);
         if (withMetaData) {
             invoker = new DelegateProviderMetaDataInvoker(invoker, this);
         }
+        // exporter 暴露
         Exporter<?> exporter = protocolSPI.export(invoker);
         exporters.add(exporter);
     }

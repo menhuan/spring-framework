@@ -52,6 +52,7 @@ public class Transporters {
         } else {
             handler = new ChannelHandlerDispatcher(handlers);
         }
+        // 默认这里的TransPOTER  是Netty 返回是netty服务
         return getTransporter(url).bind(url, handler);
     }
 
