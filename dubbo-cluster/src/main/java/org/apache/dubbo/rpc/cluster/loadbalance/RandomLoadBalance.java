@@ -74,6 +74,7 @@ public class RandomLoadBalance extends AbstractLoadBalance {
                 sameWeight = false;
             }
         }
+        // 权重值不同，选择invoker的方法
         if (totalWeight > 0 && !sameWeight) {
             // If (not every invoker has the same weight & at least one invoker's weight>0), select randomly based on totalWeight.
             int offset = ThreadLocalRandom.current().nextInt(totalWeight);
@@ -84,6 +85,7 @@ public class RandomLoadBalance extends AbstractLoadBalance {
                 }
             }
         }
+        // 如果权重都一样，则直接随机选择一个
         // If all invokers have the same weight value or totalWeight=0, return evenly.
         return invokers.get(ThreadLocalRandom.current().nextInt(length));
     }

@@ -172,9 +172,11 @@ public abstract class AbstractClusterInvoker<T> implements ClusterInvoker<T> {
         if (CollectionUtils.isEmpty(invokers)) {
             return null;
         }
+        // 只有一个直接返回
         if (invokers.size() == 1) {
             return invokers.get(0);
         }
+        // 选择
         Invoker<T> invoker = loadbalance.select(invokers, getUrl(), invocation);
 
         //If the `invoker` is in the  `selected` or invoker is unavailable && availablecheck is true, reselect.
@@ -261,10 +263,13 @@ public abstract class AbstractClusterInvoker<T> implements ClusterInvoker<T> {
 //        if (contextAttachments != null && contextAttachments.size() != 0) {
 //            ((RpcInvocation) invocation).addObjectAttachmentsIfAbsent(contextAttachments);
 //        }
-
+        //获取在目录中能使用到的invoke
         List<Invoker<T>> invokers = list(invocation);
+        // 初始化负载均衡
         LoadBalance loadbalance = initLoadBalance(invokers, invocation);
+        // 为异步化添加InvocationId结果
         RpcUtils.attachInvocationIdIfAsync(getUrl(), invocation);
+        //调用子类的模板方法  实现了负载均衡和远程服务调用
         return doInvoke(invocation, invokers, loadbalance);
     }
 
@@ -347,6 +352,7 @@ public abstract class AbstractClusterInvoker<T> implements ClusterInvoker<T> {
                     )
             );
         } else {
+            // invokers 为空则默认取默认的随机负载均衡器
             return applicationModel.getExtensionLoader(LoadBalance.class).getExtension(DEFAULT_LOADBALANCE);
         }
     }

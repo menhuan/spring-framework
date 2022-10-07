@@ -232,6 +232,7 @@ public class RegistryDirectory<T> extends DynamicDirectory<T> {
                 oldUrlInvokerMap = new LinkedHashMap<>(Math.round(1 + this.urlInvokerMap.size() / DEFAULT_HASHMAP_LOAD_FACTOR));
                 this.urlInvokerMap.forEach(oldUrlInvokerMap::put);
             }
+            // 构建invoker
             Map<URL, Invoker<T>> newUrlInvokerMap = toInvokers(oldUrlInvokerMap, invokerUrls);// Translate url list to Invoker map
 
             /**
@@ -247,15 +248,16 @@ public class RegistryDirectory<T> extends DynamicDirectory<T> {
                         .toString()));
                 return;
             }
-
             List<Invoker<T>> newInvokers = Collections.unmodifiableList(new ArrayList<>(newUrlInvokerMap.values()));
             // pre-route and build cache, notice that route cache should build on original Invoker list.
             // toMergeMethodInvokerMap() will wrap some invokers having different groups, those wrapped invokers not should be routed.
+            // 第二步保存到容器中
             routerChain.setInvokers(newInvokers);
             this.invokers = multiGroup ? toMergeInvokerList(newInvokers) : newInvokers;
             this.urlInvokerMap = newUrlInvokerMap;
 
             try {
+                // 第三步销毁没用的invoker
                 destroyUnusedInvokers(oldUrlInvokerMap, newUrlInvokerMap); // Close the unused Invoker
             } catch (Exception e) {
                 logger.warn("destroyUnusedInvokers error. ", e);
@@ -373,6 +375,7 @@ public class RegistryDirectory<T> extends DynamicDirectory<T> {
                         enabled = url.getParameter(ENABLED_KEY, true);
                     }
                     if (enabled) {
+                        // 构建 invoker
                         invoker = protocol.refer(serviceType, url);
                     }
                 } catch (Throwable t) {
@@ -529,13 +532,14 @@ public class RegistryDirectory<T> extends DynamicDirectory<T> {
                     NetUtils.getLocalHost() + " use dubbo version " + Version.getVersion() +
                     ", please check status of providers(disabled, not registered or in blacklist).");
         }
-
+        // 多个组情况
         if (multiGroup) {
             return this.invokers == null ? Collections.emptyList() : this.invokers;
         }
 
         List<Invoker<T>> invokers = null;
         try {
+            // 从容器中获取到invokers 根据路由规则筛选出来合适的invoker集合
             // Get invokers from cache, only runtime routers will be executed.
             invokers = routerChain.route(getConsumerUrl(), invocation);
         } catch (Throwable t) {
